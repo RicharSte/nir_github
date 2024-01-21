@@ -1,16 +1,19 @@
 import requests
-import json
+from collections import namedtuple
+
 from source import TOKEN
 
-headers = {
-    'Authorization': f'token {TOKEN}'
-}
-
-with open('repositories.json', 'r') as file:
-    repositories = json.load(file)
+FileData = namedtuple('FileData', ['owner', 'repo_name', 'file_name', 'file_content'])
 
 
-def get_directory_contents(owner, repo_name, directory_path):
+def get_directory_contents(owner, repo_name, directory_path='', results=None):
+    if results is None:
+        results = []
+
+    headers = {
+        'Authorization': f'token {TOKEN}'
+    }
+
     url = f'https://api.github.com/repos/{owner}/{repo_name}/contents/{directory_path}'
     response = requests.get(url, headers=headers)
 
@@ -24,22 +27,16 @@ def get_directory_contents(owner, repo_name, directory_path):
                 file_response = requests.get(file_content_url)
 
                 if file_response.status_code == 200:
-                    file_content = file_response.text
-                    print(f'Содержимое файла {file_name}:\n{file_content}\n')
+                    file_data = FileData(owner, repo_name, file_name, file_response.text)
+                    results.append(file_data)
                 else:
                     print(f'Ошибка при получении файла {file_name}: {file_response.status_code}')
 
             elif content_item['type'] == 'dir':
                 dir_name = content_item['name']
-                get_directory_contents(owner, repo_name, f'{directory_path}/{dir_name}')
+                get_directory_contents(owner, repo_name, f'{directory_path}/{dir_name}', results)
 
     else:
         print(f'Ошибка при получении содержимого репозитория {owner}/{repo_name}: {response.status_code}')
 
-
-for repo in repositories:
-    owner = repo['owner']
-    repo_name = repo['name']
-    directory_path = ''
-    print(f'Обработка репозитория {owner}/{repo_name}...\n')
-    get_directory_contents(owner, repo_name, directory_path)
+    return results
