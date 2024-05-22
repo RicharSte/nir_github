@@ -12,8 +12,9 @@ def main():
         get_repositories()
     else:
         print('Файл со списком репозиториев уже существует. Загрузка данных из файла...')
-        with open('repositories.json') as file:
-            repositories = json.load(file)
+
+    with open('repositories.json') as file:
+        repositories = json.load(file)
 
     malware_dataset = load_csv_to_dataframe('full.csv')
 

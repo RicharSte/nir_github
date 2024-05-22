@@ -31,7 +31,8 @@ def load_csv_to_dataframe(file_path):
     :return: DataFrame с данными из файла.
     """
     try:
-        df = pd.read_csv(file_path, quotechar='"', on_bad_lines='warn')
+        print('Загружаю данные о вредоносном ПО из базы...')
+        df = pd.read_csv(file_path, quotechar='"', on_bad_lines='warn', engine='python')
         print(df.head())
         return df
     except Exception as e:
