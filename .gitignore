@@ -1,4 +1,9 @@
 source.py
 .idea
-__pycache__
+__pycache__/
 full.csv
+venv/
+cluster_results/
+local_model/
+*.png
+repositories.json
