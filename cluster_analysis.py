@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 # Загрузка модели и токенизатора
-model_name = "Salesforce/codegen-2B-mono"
+model_name = 'Salesforce/codegen-2B-mono'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -17,37 +17,27 @@ def analyze_code_clusters(
     num_clusters: int = 5,
     visualize: bool = True,
     save_results: bool = False,
-    filename: str = "clusters.csv",
+    filename: str = 'clusters.csv',
 ):
-    max_length = (
-        2048  # Максимальная длина последовательности, поддерживаемая моделью
-    )
+    max_length = 2048  # Максимальная длина последовательности, поддерживаемая моделью
     tokens = tokenizer.tokenize(code)
 
     if len(tokens) < 2:  # Минимум 2 токена для кластеризации
-        print(
-            f'Недостаточно токенов для кластеризации. Токенов: {len(tokens)}'
-        )
+        print(f'Недостаточно токенов для кластеризации. Токенов: {len(tokens)}')
         return pd.DataFrame()  # Возвращаем пустой DataFrame
 
-    chunks = [
-        tokens[i : i + max_length] for i in range(0, len(tokens), max_length)
-    ]
+    chunks = [tokens[i : i + max_length] for i in range(0, len(tokens), max_length)]
     all_embeddings = []
 
     for chunk in chunks:
-        if (
-            len(chunk) < 2
-        ):  # Пропускать куски с недостаточным количеством токенов
+        if len(chunk) < 2:  # Пропускать куски с недостаточным количеством токенов
             continue
         inputs = tokenizer.convert_tokens_to_ids(chunk)
-        inputs = tokenizer.prepare_for_model(inputs, return_tensors="pt")
+        inputs = tokenizer.prepare_for_model(inputs, return_tensors='pt')
 
         # Получение эмбеддингов токенов
         with torch.no_grad():
-            outputs = model(
-                **inputs, output_hidden_states=True, return_dict=True
-            )
+            outputs = model(**inputs, output_hidden_states=True, return_dict=True)
             last_hidden_states = outputs.hidden_states[-1]
 
         all_embeddings.append(last_hidden_states[0].cpu().numpy())
@@ -76,7 +66,7 @@ def analyze_code_clusters(
         plt.xlabel('Number of Clusters')
         plt.ylabel('SSE')
         plt.title('Elbow Method For Optimal k')
-        plt.savefig("elbow_method.png")
+        plt.savefig('elbow_method.png')
         plt.close()
 
         optimal_k = 3  # Default значение
@@ -113,7 +103,7 @@ def analyze_code_clusters(
         plt.title('Token Clusters')
         plt.xlabel('PCA Component 1')
         plt.ylabel('PCA Component 2')
-        plt.savefig("token_clusters.png")
+        plt.savefig('token_clusters.png')
         plt.close()
 
     # Печать токенов с их кластерами
@@ -139,11 +129,7 @@ def load_reference_clusters(filename: str) -> pd.DataFrame:
     return pd.read_pickle(filename)
 
 
-def compare_clusters(
-    new_df: pd.DataFrame, reference_df: pd.DataFrame
-) -> float:
-    common_clusters = set(new_df['Cluster']).intersection(
-        set(reference_df['Cluster'])
-    )
+def compare_clusters(new_df: pd.DataFrame, reference_df: pd.DataFrame) -> float:
+    common_clusters = set(new_df['Cluster']).intersection(set(reference_df['Cluster']))
     similarity_score = len(common_clusters) / len(set(reference_df['Cluster']))
     return similarity_score, common_clusters

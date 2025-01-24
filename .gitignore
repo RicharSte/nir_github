@@ -3,6 +3,7 @@ source.py
 __pycache__/
 full.csv
 venv/
+.venv/
 cluster_results/
 local_model/
 *.png
