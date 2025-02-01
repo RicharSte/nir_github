@@ -1,6 +1,9 @@
 import requests
 import json
 from source import TOKEN
+from logging_config import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_repositories():
@@ -14,7 +17,7 @@ def get_repositories():
     while page <= page_amount:
         params = {'q': 'language:python', 'per_page': 100, 'page': page}
 
-        print(f'Происходит запрос к GitHub API: {page}/{page_amount}')
+        logger.info(f'Происходит запрос к GitHub API: {page}/{page_amount}')
         response = requests.get(url, headers=headers, params=params)
 
         if response.status_code == 200:
@@ -31,7 +34,7 @@ def get_repositories():
             )
             page += 1
         else:
-            print(
+            logger.error(
                 f'Ошибка при получении списка репозиториев: {response.status_code}'
             )
             break
@@ -39,7 +42,7 @@ def get_repositories():
     with open('repositories.json', 'w') as file:
         json.dump(repositories, file)
 
-    print(
+    logger.info(
         f'Список репозиториев сохранен в файле "repositories.json". Всего репозиториев: {len(repositories)}'
     )
 

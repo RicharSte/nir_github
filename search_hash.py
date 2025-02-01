@@ -1,5 +1,8 @@
 import pandas as pd
 import hashlib
+from logging_config import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_file_hash(file_content, hash_type='sha256'):
@@ -31,12 +34,12 @@ def load_csv_to_dataframe(file_path):
     :return: DataFrame с данными из файла.
     """
     try:
-        print('Загружаю данные о вредоносном ПО из базы...')
+        logger.info('Загружаю данные о вредоносном ПО из базы...')
         df = pd.read_csv(file_path, quotechar='"', on_bad_lines='warn', engine='python')
-        print(df.head())
+        logger.info(df.head())
         return df
     except Exception as e:
-        print(f"Ошибка при загрузке файла {file_path}: {e}")
+        logger.error(f'Ошибка при загрузке файла {file_path}: {e}')
         return None
 
 
@@ -52,5 +55,5 @@ def search_hash_in_dataset(df, hash_value, hash_type='sha256_hash'):
     if df is not None and hash_type in df.columns:
         return df[df[hash_type] == hash_value]
     else:
-        print("DataFrame пустой или не содержит указанного столбца хеша.")
+        logger.warning('DataFrame пустой или не содержит указанного столбца хеша.')
         return None
